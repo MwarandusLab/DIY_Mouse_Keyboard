@@ -6,11 +6,11 @@
 
 MPU6050 mpu;
 // Creating variables
-int16_t accx, accy; // Initial sensor reading variable
-int prevX, prevY;   // Variable after filtering
+int16_t accx, accy;  // Initial sensor reading variable
+int prevX, prevY;    // Variable after filtering
 
-const float filterValue = 0.95; // Filter for smoothing readings
-const int mouseSpeed = 2;      // Mouse speed
+const float filterValue = 0.95;  // Filter for smoothing readings
+const int mouseSpeed = 2;        // Mouse speed
 
 int RightClickButton = 8;
 int LeftClickButton = 9;
@@ -19,9 +19,6 @@ int F5Button = 6;
 int ForwardButton = 4;
 int BackwardButton = 10;
 int ModeButton = 7;
-
-int Bluetooth_RX = 16;
-int Bluetooth_TX = 14;
 
 int Led = 1;
 
@@ -55,10 +52,12 @@ boolean lastButtonState_5 = HIGH;
 unsigned long lastDebounceTime_5 = 0;
 unsigned long debounceDelay_5 = 50;
 
+#define bluetooth Serial
 void setup() {
   Serial.begin(9600);
-  Wire.begin();        // Start Wire communication
-  mpu.initialize();    // Initialize MPU
+  bluetooth.begin(9600);
+  Wire.begin();      // Start Wire communication
+  mpu.initialize();  // Initialize MPU
   Mouse.begin();
 
   pinMode(Led, OUTPUT);
@@ -72,60 +71,61 @@ void setup() {
 }
 
 void loop() {
-  // if (bluetooth.available() > 0) {
-  //   // Mouse and keyboard commands will be executed only if Bluetooth device is paired
-  //   mpu.getMotion6(&accx, &accy, NULL, NULL, NULL, NULL); // Read and store sensor x and y axes
+  if (bluetooth.available() > 0) {
+    // Mouse and keyboard commands will be executed only if Bluetooth device is paired
+    mpu.getMotion6(&accx, &accy, NULL, NULL, NULL, NULL);  // Read and store sensor x and y axes
 
-  //   // Map variables to old variable and set mouse limits
-  //   int deltaX = map(accx, -20000, 20000, -20, 20);
-  //   int deltaY = map(accy, -20000, 20000, -20, 20);
+    // Map variables to old variable and set mouse limits
+    int deltaX = map(accx, -20000, 20000, -20, 20);
+    int deltaY = map(accy, -20000, 20000, -20, 20);
 
-  //   // Create final variable after calculations and filtering
-  //   int newX = prevX + int(filterValue * (deltaX - prevX));
-  //   int newY = prevY + int(filterValue * (deltaY - prevY));
+    // Create final variable after calculations and filtering
+    int newX = prevX + int(filterValue * (deltaX - prevX));
+    int newY = prevY + int(filterValue * (deltaY - prevY));
 
-  //   // Emulate mouse movement with filtered and calculated variables
-  //   Mouse.move(mouseSpeed * newX, mouseSpeed * newY, 0);
+    // Emulate mouse movement with filtered and calculated variables
+    Mouse.move(mouseSpeed * newX, mouseSpeed * newY, 0);
 
-  //   // Set final variable to be equal to the old one for new movements
-  //   prevX = newX;
-  //   prevY = newY;
+    // Set final variable to be equal to the old one for new movements
+    prevX = newX;
+    prevY = newY;
+    bluetooth.print(prevX);
+    bluetooth.println(prevY);
 
-  //   delay(10); // Wait for ms for sensor and mouse reading
+    delay(10);  // Wait for ms for sensor and mouse reading
 
-  //   // Transmit commands via Bluetooth
-  //   // HandleESCButton();
-  //   // HandleF5Button();
-  //   // HandleRightClickButton();
-  //   // HandleLeftClickButton();
-  //   // HandleForwardButton();
-  //   // HandleBackwardButton();
-  // }
-  mpu.getMotion6(&accx, &accy, NULL, NULL, NULL, NULL); // Read and store sensor x and y axes
+    HandleESCButton();
+    HandleF5Button();
+    HandleRightClickButton();
+    HandleLeftClickButton();
+    HandleForwardButton();
+    HandleBackwardButton();
+  }
+  // mpu.getMotion6(&accx, &accy, NULL, NULL, NULL, NULL); // Read and store sensor x and y axes
 
-  // Map variables to old variable and set mouse limits
-  int deltaX = map(accx, -20000, 20000, -20, 20);
-  int deltaY = map(accy, -20000, 20000, -20, 20);
+  // // Map variables to old variable and set mouse limits
+  // int deltaX = map(accx, -20000, 20000, -20, 20);
+  // int deltaY = map(accy, -20000, 20000, -20, 20);
 
-  // Create final variable after calculations and filtering
-  int newX = prevX + int(filterValue * (deltaX - prevX));
-  int newY = prevY + int(filterValue * (deltaY - prevY));
+  // // Create final variable after calculations and filtering
+  // int newX = prevX + int(filterValue * (deltaX - prevX));
+  // int newY = prevY + int(filterValue * (deltaY - prevY));
 
-  // Emulate mouse movement with filtered and calculated variables
-  Mouse.move(mouseSpeed * newX, mouseSpeed * newY, 0);
+  // // Emulate mouse movement with filtered and calculated variables
+  // Mouse.move(mouseSpeed * newX, mouseSpeed * newY, 0);
 
-  // Set final variable to be equal to the old one for new movements
-  prevX = newX;
-  prevY = newY;
+  // // Set final variable to be equal to the old one for new movements
+  // prevX = newX;
+  // prevY = newY;
 
-  delay(10); // Wait for ms for sensor and mouse reading
-  
-  HandleESCButton();
-  HandleF5Button();
-  HandleRightClickButton();
-  HandleLeftClickButton();
-  HandleForwardButton();
-  HandleBackwardButton();
+  // delay(10); // Wait for ms for sensor and mouse reading
+
+  // HandleESCButton();
+  // HandleF5Button();
+  // HandleRightClickButton();
+  // HandleLeftClickButton();
+  // HandleForwardButton();
+  // HandleBackwardButton();
 }
 void HandleESCButton() {
   boolean reading = digitalRead(ESCButton);
